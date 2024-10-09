@@ -1,0 +1,10 @@
+1. create database digitalmarketing
+2. create table logindetails(id varchar(40) not null primary key, client_name varchar(100) not null, username varchar(100) not null, password varchar(100) not null, email varchar(300) not null,date_of_joining date not null, company_logo varchar(500) not null, role varchar(50) not null default 'client');
+3. create table campaigndetails(camp_id varchar(40) primary key not null, client_name varchar(100) not null, campaign_name varchar(300) not null, start_date date not null, end_date date not null, camp_based_on varchar(300) not null, selected_camp_opt varchar(300) not null, planned_impressions bigint not null, planned_cpm real not null, planned_clicks bigint not null, planned_cpc real not null, planned_sessions bigint not null, planned_cps real not null, ctr float not null, planned_budget_impressions real not null, planned_budget_clicks real not null, planned_budget_sessions real not null, client_camp_access varchar(100) not null, client_id varchar(40) not null, foreign key(client_id) references logindetails(id) on delete cascade );
+4. create table reportdetails(id int not null auto_increment primary key, client_name varchar(100) not null, campaign_name varchar(300) not null, date date not null, impressions bigint not null, cpm real not null, clicks bigint not null, cpc real not null, sessions bigint not null, cps real not null, total_cpm real not null, total_cpc real not null, total_cps real not null , ctr float not null, camp_id varchar(40) not null, client_id varchar(40) not null, foreign key(camp_id) references campaigndetails(camp_id) on delete cascade);
+5. create table validationcodes(id varchar(40) not null, username varchar(100) not null, email varchar(300) not null, validation_code int not null);
+
+-----------------------------------------------------superadmin createtion-----------------------------------------------
+insert into logindetails values(1, 'SuperAdmin', '<YourName>', '','<YourEmail>','2024-06-17','','superadmin');
+
+----------------------------------------after inserting do forgot password and reset your password------------------------
