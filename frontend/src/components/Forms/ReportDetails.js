@@ -4,13 +4,12 @@ import Navbar from '../NavBar/Navbar'
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import swal from 'sweetalert';
-import axios from 'axios';
 import { Circle, FileDownload, Search } from '@mui/icons-material';
 import Loader from '../Loader';
 import LoadingButton from '@mui/lab/LoadingButton';
-
 import India from './India';
 import { useNavigate } from 'react-router-dom';
+import Instance from '../../api/apiInstance';
 
 
 const Transition = forwardRef(function Transition(props, ref) {
@@ -62,13 +61,14 @@ function ReportDetails() {
         const getData = async () => {
             setLoader(true)
             try {
-                const res = await axios.get('/api/reports')
-                //console.log(res.data)
+                const api = Instance()
+                const res = await api.get('/api/reports')
+                // console.log(res.data)
                 const data = res.data.data.map(data => ({ ...data, date: new Date(data.date).toLocaleString('en-CA').slice(0, 10), start_date: new Date(data.start_date).toLocaleString('en-CA').slice(0, 10), end_date: new Date(data.end_date).toLocaleString('en-CA').slice(0, 10) }))
                 setReportData({ ...res.data, data: data })
                 setFiltedReportData(data)
-                const result = await axios.get('/api/clientdetails')
-                //console.log(res.data)
+                const result = await api.get('/api/clientdetails')
+                // console.log(res.data)
                 const dataCli = result.data.map(data => ({ id: data.id, clientName: data.client_name }))
                 dataCli.unshift({ id: 1, clientName: 'All' })
                 setClientData(dataCli)
@@ -76,7 +76,7 @@ function ReportDetails() {
                 setLoader(false)
             }
             catch (err) {
-                //console.log(err)
+                // console.log(err)
                 setLoader(false)
                 swal({
                     title: 'Error Occured!',
@@ -99,8 +99,9 @@ function ReportDetails() {
         })
             .then((willDelete) => {
                 if (willDelete) {
-                    //console.log(row)
-                    axios.delete('/api/deletecampaignrecord/', { params: { id: row.id, camp_id: row.camp_id } })
+                    // console.log(row)
+                    const api = Instance()
+                    api.delete('/api/deletecampaignrecord/', { params: { id: row.id, camp_id: row.camp_id } })
                         .then(res => {
                             setUpdate(prev => prev + 1)
                             swal(res.data, {
@@ -119,7 +120,7 @@ function ReportDetails() {
 
     const handleEdit = (rowData) => {
         const based_on = rowData.camp_based_on.split(',')
-        //console.log({ ...rowData, camp_based_on: based_on, state: { id: 0, state: rowData.state }, city: { id: 0, city: rowData.city } })
+        // console.log({ ...rowData, camp_based_on: based_on, state: { id: 0, state: rowData.state }, city: { id: 0, city: rowData.city } })
 
         setEditFields({ ...rowData, camp_based_on: based_on, state: { id: 0, state: rowData.state }, city: { id: 0, city: rowData.city } })
         setPrevEditFields({ ...rowData, camp_based_on: based_on, state: { id: 0, state: rowData.state }, city: { id: 0, city: rowData.city } })
@@ -140,7 +141,7 @@ function ReportDetails() {
 
     const handleNavigate = (e) => {
         const val = e.value
-        //console.log('/client-dashboard/' + val.client_name + '/' + val.camp_id)
+        // console.log('/client-dashboard/' + val.client_name + '/' + val.camp_id)
         const path = '/client-dashboard/' + val.client_name + '/' + val.camp_id
         navigate(path)
 
@@ -151,7 +152,7 @@ function ReportDetails() {
 
         const handleFieldsChange = (e) => {
             const val = e.target.value === '' ? 0 : e.target.value
-            //console.log(val, e.target.name )
+            // console.log(val, e.target.name )
             let field, cal, ctrPer;
             if (e.target.name === 'impressions') {
                 field = 'total_cpm'
@@ -169,7 +170,7 @@ function ReportDetails() {
             if (e.target.name === 'cpm') {
                 field = 'total_cpm'
                 cal = ((editFields.impressions * val) / 1000).toFixed(2)
-                //console.log(field,cal,e.target.value)
+                // console.log(field,cal,e.target.value)
             }
             if (e.target.name === 'clicks') {
                 field = 'total_cpc'
@@ -194,7 +195,7 @@ function ReportDetails() {
                 field = 'total_cps'
                 cal = (editFields.sessions * val).toFixed(2)
             }
-            console.log(cal, field,ctrPer)
+            // console.log(cal, field,ctrPer)
             if (field !== undefined && cal !== undefined) {
                 if (ctrPer !== undefined && ctrPer !== 'Infinity') {
                     setEditFields({ ...editFields, [e.target.name]: e.target.value, [field]: cal, ctr: ctrPer })
@@ -217,30 +218,32 @@ function ReportDetails() {
 
         const handleSubmit = async (e) => {
             e.preventDefault()
-            //console.log(editFields)
-            //console.log(editFields.camp_based_on.length===0)
+            // console.log(editFields)
+            // console.log(editFields.camp_based_on.length===0)
 
             if (JSON.stringify(prevEditFields) !== JSON.stringify(editFields)) {
                 setLoadButton(true)
                 try {
-                    //console.log('edit', editFields)
-                    const res = await axios.put('/api/editcampaignreport', editFields)
-                    //console.log(res.data)
+                    // console.log('edit', editFields)
+                    const api = Instance()
+                    const res = await api.put('/api/editcampaignreport', editFields)
+                    // console.log(res.data)
                     setLoadButton(false)
                     handleClose()
                     if (searchFields.campaignName !== null && searchFields.clientName !== null) {
-                        const res = await axios.get(`/api/searchreports/`, { params: searchFields })
+                        const res = await api.get(`/api/searchreports/`, { params: searchFields })
                         if (res.data.info !== undefined) {
                             setCampaignInfo(res.data.info)
-                            //console.log(res.data.info,'done')
+                            // console.log(res.data.info,'done')
                         }
                         else {
                             campaignInfo.planned.length !== 0 && setCampaignInfo({ name: '', status: '', planned: [] })
                         }
-
+                        
                         const data = res.data.data.map(data => ({ ...data, date: new Date(data.date).toLocaleString('en-CA').slice(0, 10), start_date: new Date(data.start_date).toLocaleString('en-CA').slice(0, 10), end_date: new Date(data.end_date).toLocaleString('en-CA').slice(0, 10) }))
+                        //console.log('data', data)
                         setReportData({ ...res.data, data: data })
-                        setFiltedReportData(res.data.data)
+                        setFiltedReportData(data)
                     }
                     else {
                         setUpdate(prev => prev + 1)
@@ -261,7 +264,7 @@ function ReportDetails() {
                         icon: 'error'
                     })
                 }
-                //console.log(editFields)
+                // console.log(editFields)
             }
 
 
@@ -319,7 +322,7 @@ function ReportDetails() {
                                     }}
                                     value={editFields.state}
                                     onChange={(_, newValue) => {
-                                        console.log(newValue)
+                                        // console.log(newValue)
                                         if (newValue) {
                                             setEditFields({ ...editFields, state: newValue })
                                         }
@@ -513,7 +516,7 @@ function ReportDetails() {
     const header = renderHeader();
 
     const handleClientSelection = async (_, newValue) => {
-        //console.log(newValue)
+        // console.log(newValue)
 
         if (newValue) {
             const { id, clientName } = newValue
@@ -524,8 +527,9 @@ function ReportDetails() {
             } else {
                 try {
                     setLoader(true)
-                    const res = await axios.get('/api/campaigns/' + id)
-                    //console.log(res.data)
+                    const api = Instance()
+                    const res = await api.get('/api/campaigns/' + id)
+                    // console.log(res.data)
                     //setCampaignData(res.data)
                     const data = res.data.map(data => ({ campaignName: data.campaign_name, campId: data.camp_id }))
                     data.unshift({ campId: 0, campaignName: 'All' })
@@ -560,12 +564,13 @@ function ReportDetails() {
         e.preventDefault()
         try {
             setLoader(true)
-            const res = await axios.get(`/api/searchreports/`, { params: searchFields })
-            //console.log(res.data,res.data.info!==undefined)
+            const api = Instance()
+            const res = await api.get(`/api/searchreports/`, { params: searchFields })
+            // console.log(res.data,res.data.info!==undefined)
 
             if (res.data.info !== undefined) {
                 setCampaignInfo(res.data.info)
-                //console.log(res.data.info,'done')
+                // console.log(res.data.info,'done')
             }
             else {
                 campaignInfo.planned.length !== 0 && setCampaignInfo({ name: '', status: '', planned: [] })

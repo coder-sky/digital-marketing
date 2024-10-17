@@ -13,6 +13,7 @@ function AdminProtectedRoute(props) {
   const location = useLocation();
 
   const path = location.pathname.replace('/','').replace(/-/g,'').toLowerCase()
+  //console.log(path, userDetails.role, userDetails)
   
   if (Cookies.get('ssid') === undefined) {
     return <Navigate to='/login' />

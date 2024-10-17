@@ -9,4 +9,10 @@ const db = mysql.createConnection({
     database: process.env.DB_DBNAME,
 })
 
+function keepAlive() { 
+    console.log('re-connecting')
+    db.ping();     
+}
+setInterval(keepAlive, 43200000); 
+
 export default db

@@ -39,21 +39,20 @@ import { motion } from "framer-motion"
 import { Box, Button, Container, Grid, IconButton, Paper, Stack, TextField, Typography } from '@mui/material';
 import { LinearGradient } from 'react-text-gradients'
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import axios from 'axios'
 import LoadingButton from '@mui/lab/LoadingButton';
 import swal from 'sweetalert';
 import Cookies from 'js-cookie'
 import UserContext from '../Context/UserContext';
+import CryptoJS from 'crypto-js';
+import Instance from '../../api/apiInstance';
+
 
 const Login = () => {
   const [fields, setFields] = useState({ username: '', password: '' })
   const [visibility, setVisibility] = useState(false)
   const [loadingButton, setLoadingButton] = useState(false)
-  
   const { handleUserDetails } = useContext(UserContext)
   const navigate = useNavigate()
-
-  
 
   const globe = useMemo(() => {
     const icons = [siFacebook, siGoogleads, siInstagram, siAmazon, siYoutube, siMicrosoftbing, siSnapchat, siLinkedin, siReddit, siX, siSpotify, siPinterest, siAdroll, siQuora, siPandora, siSwiggy, siZomato, siSony, siUber, siAirtel, siBritishairways, siCocacola, siHyundai, siIcicibank, siIgn, siLenovo, siSuzuki, siVodafone, siUnilever, siSamsung].map((icon) => {
@@ -72,6 +71,7 @@ const Login = () => {
       </Cloud>
     )
   }, [])
+
   if (Cookies.get('ssid') !== undefined) {
     return <Navigate to="/home" replace={true} />;
   }
@@ -79,13 +79,21 @@ const Login = () => {
   const handleLogin = (e) => {
     e.preventDefault()
     setLoadingButton(true)
-    axios.post('/api/login', fields)
+    const api = Instance()
+    api.post('/api/login', fields,
+      )
       .then(res => {
-        handleUserDetails(res.data)
+        // console.log(res)
+        const {authToken, userDetails} = res.data
+        Cookies.set('ssid', authToken,{secure:true, expires:30})
+        const decrypted = JSON.parse(CryptoJS.AES.decrypt(userDetails,process.env.REACT_APP_DATA_ENCRYPTION_SECRETE).toString(CryptoJS.enc.Utf8))
+        handleUserDetails(decrypted)
+        // console.log(res.data)       
         navigate('/home')
 
       })
       .catch((err)=>{
+        // console.log(err)
         setLoadingButton(false)
         swal({
           title:err.response.data,

@@ -1,28 +1,31 @@
-import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import UserContext from './UserContext';
 import swal from 'sweetalert';
+import CryptoJS from 'crypto-js';
+import Instance from '../../api/apiInstance';
+
 
 function UserProvider(props) {
   const [userDetails, setUserDetails] = useState({id:'', client_name:'', username:'', email:'', company_logo:'', role:''})
   const [unAuth, setUnAuth] = useState(false)
   const navigate = useNavigate()
-  //console.log(context)
+
 
   useEffect(() => {
-
     if (Cookies.get('ssid') !== undefined ) {
-      axios.get('/api/checkuser')
+      const api = Instance()
+      api.get('/api/checkuser')
         .then(res => { 
-          //console.log(res.data)         
-          setUserDetails(res.data)
+          // console.log(res.data)   
+          const decrypted = JSON.parse(CryptoJS.AES.decrypt(res.data,process.env.REACT_APP_DATA_ENCRYPTION_SECRETE).toString(CryptoJS.enc.Utf8))      
+          setUserDetails(decrypted)
         })
         .catch(err => {
 
           if (err.response.data === "Unauthorized") {
-            //console.log('hey', err)
+            // console.log('hey', err)
             Cookies.remove('ssid')
             swal({
               title:'Unauthorized User',
@@ -38,22 +41,23 @@ function UserProvider(props) {
             })
             
           }
-          //console.log(err)
+          // console.log(err)
         })
     }
 
   }, [])
-  //console.log('context called')
+  // console.log('context called')
 
   if (unAuth) {
     setUnAuth(false)
-    //console.log('coming')
+    // console.log('coming')
 
     return navigate('/login', { replace: true })
   }
 
 
   const handleUserDetails = (data) => {
+    //console.log(data)
     setUserDetails(data)
   }
 

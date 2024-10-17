@@ -240,7 +240,11 @@ export const deletecampaignrecord = async (req, res) => {
 export const editcampaignreport = async (req, res) => {
     const { isAuth, role } = req.checkAuth
     if (isAuth && role === 'superadmin') {
-        let { id, camp_id, campaign_name, state, city, date, impressions, cpm, clicks, cpc, sessions, cps, ctr, total_cpm, total_cpc, total_cps } = req.body
+        console.log(req.body)
+        const updatationValuesCheck = ['impressions', 'cpm', 'clicks', 'cpc', 'sessions', 'cps', 'ctr', 'total_cpm', 'total_cpc', 'total_cps',]
+        const updationKeys = Object.keys(req.body).filter(k=> updatationValuesCheck.includes(k))
+        const updationValues = updationKeys.map(k=>req.body[k])
+        let { id, camp_id, campaign_name, state, city, date, } = req.body
         try {
             state = state.state
             city = city.city
@@ -254,8 +258,10 @@ export const editcampaignreport = async (req, res) => {
                 else {
                     if (result.length === 0) {
                         try {
-                            const update_record_query = 'update reportdetails set state=?, city=?, date=?, impressions=?, cpm=?, clicks=?, cpc=?, sessions=?, cps=?, ctr=?, total_cpm=?, total_cpc=?, total_cps=? where id=? and camp_id=? and campaign_name=?'
-                            const update_record_values = [state, city, date, impressions, cpm, clicks, cpc, sessions, cps, ctr, total_cpm, total_cpc, total_cps, id, camp_id, campaign_name]
+                            //const update_record_query = 'update reportdetails set state=?, city=?, date=?, impressions=?, cpm=?, clicks=?, cpc=?, sessions=?, cps=?, ctr=?, total_cpm=?, total_cpc=?, total_cps=? where id=? and camp_id=? and campaign_name=?'
+                            const subStringQuery = updationKeys.join('=?, ')
+                            const update_record_query = `update reportdetails set state=?, city=?, date=?, ${subStringQuery}=? where id=? and camp_id=? and campaign_name=?`
+                            const update_record_values = [state, city, date, ...updationValues, id, camp_id, campaign_name]
                             await db.promise().query(update_record_query, update_record_values)
                             return res.send('Record updated successfully')
                         }
@@ -347,8 +353,8 @@ export const clientdashboard = async (req, res) => {
                     })
                     newData.push(newObj)
                 })
-
-                tableData = { headers: col.map(col => ({ field: col, header: col.toUpperCase().replace('_', ' ') })), data: newData.map(data => ({ ...data, date: new Date(data.date).toLocaleString('en-CA').slice(0, 9) })) }
+                
+                tableData = { headers: col.map(col => ({ field: col, header: col.toUpperCase().replace('_', ' ') })), data: newData}
 
             }
 
@@ -416,7 +422,7 @@ export const campaigninfo = async (req, res) => {
                 newData.push(newObj)
             })
 
-            tableData = { headers: col.map(col => ({ field: col, header: col.toUpperCase().replace('_', ' ') })), data: newData.map(data => ({ ...data, date: new Date(data.date).toLocaleString('en-CA').slice(0, 9) })) }
+            tableData = { headers: col.map(col => ({ field: col, header: col.toUpperCase().replace('_', ' ') })), data: newData}
 
 
 
@@ -468,7 +474,7 @@ export const searchcampaign = async (req, res) => {
                     newData.push(newObj)
                 })
 
-                tableData = { headers: col.map(col => ({ field: col, header: col.toUpperCase().replace('_', ' ') })), data: newData.map(data => ({ ...data, date: new Date(data.date).toLocaleString('en-CA').slice(0, 9) })) }
+                tableData = { headers: col.map(col => ({ field: col, header: col.toUpperCase().replace('_', ' ') })), data: newData }
 
             }
             return res.send({ areaGraphData: areaGraphData, donutGraphData: donutGraphData, tableData: tableData })
@@ -550,7 +556,7 @@ export const clientdashboardadmin = async (req, res) => {
                 newData.push(newObj)
             })
 
-            tableData = { headers: col.map(col => ({ field: col, header: col.toUpperCase().replace('_', ' ') })), data: newData.map(data => ({ ...data, date: new Date(data.date).toLocaleString('en-CA').slice(0, 9) })) }
+            tableData = { headers: col.map(col => ({ field: col, header: col.toUpperCase().replace('_', ' ') })), data: newData}
 
 
 

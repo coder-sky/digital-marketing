@@ -1,9 +1,11 @@
 import jwt from 'jsonwebtoken'
-//import db from '../config/connectiondb.js'
+
 
 export const checkAuthentication = function (req, res, next) {
-    //console.log(req.body, req.cookies)
-    const authKey = req.cookies.ssid
+    //console.log(req.cookies)
+    //console.log(req.headers)
+    const authKey = req.headers.authorization //req.cookies.ssid
+    //console.log(authKey)
     if (authKey === undefined) {
         req.checkAuth = {
             isAuth: false,
@@ -16,11 +18,23 @@ export const checkAuthentication = function (req, res, next) {
     }
     else {
         try {
-            const verifyKey = jwt.verify(req.cookies.ssid, process.env.JWT_SECRET)
-            req.checkAuth = {
-                isAuth: true,
-                ...verifyKey
+            try {
+                const verifyKey = jwt.verify(authKey.split(' ')[1], process.env.JWT_SECRET)
+                req.checkAuth = {
+                    isAuth: true,
+                    ...verifyKey
+                }
             }
+            catch {
+                req.checkAuth = {
+                    isAuth: false,
+                    client_name: 'none',
+                    username: 'none',
+                    role: 'none',
+                    email: 'none'
+                }
+            }
+
             next()
 
         }

@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import otpGenerator from 'otp-generator'
 import { v4 as uuidv4 } from 'uuid';
 import { transporter } from "../config/emailconfig.js";
+import CryptoJS from"crypto-js"
 
 export const login = (req, res) => {
     console.log(req.body)
@@ -21,8 +22,9 @@ export const login = (req, res) => {
                 const data_to_encrypt = result[0];
                 delete data_to_encrypt['password']
                 const token = jwt.sign({ ...data_to_encrypt }, process.env.JWT_SECRET)
-                console.log(data_to_encrypt)
-                return res.cookie('ssid', token).status(200).json(data_to_encrypt)
+                
+                const data  = CryptoJS.AES.encrypt(JSON.stringify(data_to_encrypt),process.env.DATA_ENCRYPTION_SECRETE).toString()      
+                res.send({authToken:token, userDetails:data})
             }
             else {
                 return res.status(406).json('Invalid Username/Password')
@@ -33,13 +35,13 @@ export const login = (req, res) => {
     //res.send('ok')
 }
 
-export const logout = (req, res) => {
-    //console.log(req.cookies.USERAUTHID)
-    return res.clearCookie('ssid').status(200).json('Logged Out!')
-}
+// export const logout = (req, res) => {
+//     //console.log(req.cookies.USERAUTHID)
+//     return res.clearCookie('ssid').status(200).json('Logged Out!')
+// }
 
 export const checkuser = async (req, res) => {
-    //console.log(req.cookies, req.checkAuth)
+    console.log(req.checkAuth)
     const {isAuth,client_name, username, email, role} = req.checkAuth
     try {
         if (isAuth) {
@@ -53,13 +55,14 @@ export const checkuser = async (req, res) => {
                     if (result.length !== 0) {
                         result = result[0]
                         delete result.password
-                        console.log(result)
+                        //console.log(result)
+                        const data  = CryptoJS.AES.encrypt(JSON.stringify(result),process.env.DATA_ENCRYPTION_SECRETE).toString()   
                         
-                        return res.status(200).send(result)
+                        return res.status(200).send(data)
                         //res.status(200).json(result)
                     }
                     else {
-                        return res.clearCookie('ssid').status(401).json('Unauthorized')
+                        return res.status(401).json('Unauthorized')
                     }
 
                 }
@@ -67,7 +70,7 @@ export const checkuser = async (req, res) => {
 
         }
         else {
-            return res.clearCookie('USERAUTHID').status(401).json('Unauthorized')
+            return res.status(401).json('Unauthorized')
         }
 
 
@@ -89,7 +92,7 @@ export const forgotpasword = (req, res) => {
             return res.status(500).json('Server Error Contact Admin!')
         }
         else {
-            console.log(result)
+            //console.log(result)
             if (result.length === 0) {
                 return res.status(406).json('Invalid Details!')
             }
@@ -146,13 +149,13 @@ export const verifycode = (req, res) => {
             return res.status(500).json('Server Error Contact Admin!')
         }
         else {
-            console.log(result)
+            ////console.log(result)
             if (result.length === 0) {
                 return res.status(406).json('Invalid Validation Code.')
             }
             else {
                 const token = jwt.sign(req.body, process.env.JWT_SECRET)
-                return res.cookie('validationid', token).send('validation successfull')
+                return res.json(token)
             }
         }
 
@@ -162,10 +165,10 @@ export const verifycode = (req, res) => {
 }
 
 export const resetpassword = (req, res) => {
-    console.log(req.body)
-    console.log(req.cookies)
-    const { username, email, password } = req.body
-    const { validationid } = req.cookies
+    // console.log(req.body)
+    // console.log(req.cookies)
+    const { username, email, password, validationid } = req.body
+    
     if (validationid) {
         const verify = jwt.verify(validationid, process.env.JWT_SECRET)
         console.log(verify)
@@ -178,7 +181,7 @@ export const resetpassword = (req, res) => {
                 return res.status(500).json('Server Error Contact Admin!')
             }
             else {
-                console.log(result)
+                //console.log(result)
                 if (result.length === 0) {
                     return res.status(406).json('Invalid Request.')
                 }
@@ -203,6 +206,9 @@ export const resetpassword = (req, res) => {
 
         })
 
+    }
+    else{
+        return res.status(500).json('Validation Failed Try Again!')
     }
 
 }

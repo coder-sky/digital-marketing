@@ -1,17 +1,15 @@
 import { Box, Button, Collapse,  Dialog, DialogActions, DialogContent, DialogTitle, Divider, Grid, IconButton, InputAdornment, Slide, Stack, TextField, Typography, styled } from '@mui/material'
 import React, { forwardRef, useEffect, useMemo, useState } from 'react'
 import Navbar from '../NavBar/Navbar'
-
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import swal from 'sweetalert';
-import axios from 'axios';
-
 import "primereact/resources/themes/lara-light-cyan/theme.css";
 import { Cancel, CloudUpload, Search } from '@mui/icons-material';
 
 import Loader from '../Loader';
 import LoadingButton from '@mui/lab/LoadingButton';
+import Instance from '../../api/apiInstance';
 
 
 const VisuallyHiddenInput = styled('input')({
@@ -53,8 +51,9 @@ function ClientDetails() {
         const getData = async () => {
             setLoader(true)
             try {
-                const res = await axios.get('/api/clientdetails')
-                //console.log(res.data)
+                const api = Instance()
+                const res = await api.get('/api/clientdetails')
+                // console.log(res.data)
                 const data = res.data.map(data => ({ ...data, date_of_joining: new Date(data.date_of_joining).toLocaleString('en-CA').slice(0, 10) }))
                 setClientData(data)
                 setFilterdClientData(data)
@@ -90,8 +89,9 @@ function ClientDetails() {
         })
             .then((willDelete) => {
                 if (willDelete) {
-                    console.log(row)
-                    axios.post('/api/deleteclient', row)
+                    // console.log(row)
+                    const api = Instance()
+                    api.post('/api/deleteclient', row)
                         .then(res => {
                             setUpdate(prev => prev + 1)
                             swal(res.data, {
@@ -143,7 +143,7 @@ function ClientDetails() {
                 };
     
                 fileReader.onerror = (error) => {
-                    //console.log('err',error)
+                    // console.log('err',error)
                     reject(error);
                 };
             });
@@ -155,8 +155,9 @@ function ClientDetails() {
             if(JSON.stringify(prevEditFields)!==JSON.stringify(editFields)){
                 setLoadButton(true)
                 try{
-                    const res = await axios.put('/api/editclient', {newData:editFields,prevData:prevEditFields})
-                    console.log(res.data)
+                    const api = Instance()
+                    const res = await api.put('/api/editclient', {newData:editFields,prevData:prevEditFields})
+                    // console.log(res.data)
                     setLoadButton(false)
                     setOpen(false)
                     setUpdate(prev=>prev+1)
@@ -175,7 +176,7 @@ function ClientDetails() {
                         icon:'error'
                     })
                 }
-                console.log(editFields)
+                // console.log(editFields)
             }
         }
         return (
@@ -257,15 +258,15 @@ function ClientDetails() {
                                 Choose Logo
                                 <VisuallyHiddenInput type="file" accept="image/*" max={1} onInput={async (e) => {
                                     const file = e.target.files[0];
-                                    //console.log(file.name,file)
+                                    // console.log(file.name,file)
                                     try {
                                         const url = await convertBase64(file)
                                         file['url'] = url
-                                        //console.log(url)
+                                        // console.log(url)
                                         setEditFields({ ...editFields, logo: { filename: file.name, url: url } })
                                     }
                                     catch (err) {
-                                        console.log(err)
+                                        // console.log(err)
                                     }
 
 

@@ -1,11 +1,11 @@
 import { Autocomplete, Box, Button, Container, Grid, Paper, Stack, TextField, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import Navbar from '../NavBar/Navbar'
-import axios from 'axios';
 import swal from 'sweetalert';
 import Loader from '../Loader';
 import LoadingButton from '@mui/lab/LoadingButton';
 import India from './India';
+import Instance from '../../api/apiInstance';
 
 function ReportForm() {
     const [inputValue, setInputValue] = useState('');
@@ -26,8 +26,9 @@ function ReportForm() {
         const getData = async () => {
             setLoader(true)
             try {
-                const res = await axios.get('/api/clientdetails')
-                //console.log(res.data)
+                const api = Instance()
+                const res = await api.get('/api/clientdetails')
+                // console.log(res.data)
                 const data = res.data.map(data => ({ id: data.id, clientName: data.client_name }))
                 setClientData(data)
                 //setFilterdClientData(data)
@@ -49,13 +50,14 @@ function ReportForm() {
         getData()
     }, [])
     const handleClientSelection = async (_, newValue) => {
-        //console.log(newValue)
+        // console.log(newValue)
         if (newValue) {
             const { id } = newValue
             try {
                 setLoader(true)
-                const res = await axios.get('/api/campaigns/' + id)
-                //console.log(res.data)
+                const api = Instance()
+                const res = await api.get('/api/campaigns/' + id)
+                // console.log(res.data)
                 setCampaignData(res.data)
                 const data = res.data.map(data => ({ campaignName: data.campaign_name, campId: data.camp_id }))
                 setCampaigns(data)
@@ -83,7 +85,7 @@ function ReportForm() {
 
     const handleCampaignSelection = (_, newValue) => {
         if (newValue) {
-            //console.log(newValue)
+            // console.log(newValue)
             const data = campaignData.filter(camp => camp.camp_id === newValue.campId)[0];
             const { start_date, end_date, camp_based_on, planned_cpm, planned_cpc, planned_cps } = data;
             const stDate = new Date(start_date).toLocaleString('en-CA').slice(0, 10);
@@ -103,7 +105,7 @@ function ReportForm() {
 
     const handleFieldsChange = (e) => {
         const val = e.target.value === '' ? 0 : e.target.value
-        //console.log(val, e.target.name )
+        // console.log(val, e.target.name )
         let field, cal, ctrPer;
         if (e.target.name === 'impressions') {
             field = 'total_cpm'
@@ -121,7 +123,7 @@ function ReportForm() {
         if (e.target.name === 'cpm') {
             field = 'total_cpm'
             cal = ((fields.impressions * val) / 1000).toFixed(2)
-            //console.log(field,cal,e.target.value)
+            // console.log(field,cal,e.target.value)
         }
         if (e.target.name === 'clicks') {
             field = 'total_cpc'
@@ -146,7 +148,7 @@ function ReportForm() {
             field = 'total_cps'
             cal = (fields.sessions * val).toFixed(2)
         }
-        //console.log(cal, field,ctrPer)
+        // console.log(cal, field,ctrPer)
         if (field !== undefined && cal !== undefined) {
             if (ctrPer !== undefined && ctrPer !== 'Infinity') {
                 setFields({ ...fields, [e.target.name]: e.target.value, [field]: cal, ctr: ctrPer })
@@ -177,9 +179,10 @@ function ReportForm() {
     }
     const handleSubmit = (e) => {
         e.preventDefault()
-        //console.log(fields)
+        // console.log(fields)
         setLoadButton(true)
-        axios.post('/api/addreport', fields)
+        const api = Instance()
+        api.post('/api/addreport', fields)
             .then(res => {
                 handleClear()
                 setLoadButton(false)
@@ -259,7 +262,7 @@ function ReportForm() {
                                             }}
                                             value={fields.state}
                                             onChange={(_, newValue) => {
-                                                //console.log(newValue)
+                                                // console.log(newValue)
                                                
                                                     setFields({ ...fields, state: newValue, city: null })
                                                 

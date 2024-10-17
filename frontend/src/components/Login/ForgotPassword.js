@@ -1,16 +1,16 @@
 import { ArrowBack, LockReset, Visibility, VisibilityOff } from '@mui/icons-material'
 import { Box,  Fade, FormControl, Grid, IconButton, InputAdornment, InputLabel, OutlinedInput, Paper, Stack, Typography, } from '@mui/material'
-import axios from 'axios'
 import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import OtpInput from 'react-otp-input';
 import LoadingButton from '@mui/lab/LoadingButton'
 import swal from 'sweetalert'
+import Instance from '../../api/apiInstance';
 
 function ForgotPassword() {
   const [forgotPasswordFields, setForgotPasswordFields] = useState({username:'',email:''})
   const [activeView, setActiveView] = useState(0)
-
+  const [token, setToken] = useState('')
   const [clientOtp, setClientOtp] = useState('')
   const [showPassword, setShowPassword] = useState({ newPass: false, confirmPass: false });
   const [password, setPassword] = useState({ newPass: '', confirmPass: '' })
@@ -24,11 +24,11 @@ function ForgotPassword() {
 
     const handleForgotPassword = async (e) => {
       e.preventDefault()
-      //console.log(email)
       setLoadSubmit(true)
       try {
-        const result = await axios.post('/api/forgotpassword', forgotPasswordFields)
-        //console.log(result)
+        const api = Instance()
+        const result = await api.post('/api/forgotpassword', forgotPasswordFields)
+        // console.log(result)
       
         swal({
           title: "Succeed",
@@ -44,7 +44,7 @@ function ForgotPassword() {
 
       }
       catch (err) {
-        //console.log(err)
+        // console.log(err)
         setLoadSubmit(false)
         //toast.error(err.response.data)
         swal({
@@ -120,11 +120,12 @@ function ForgotPassword() {
       e.preventDefault()
       setLoadSubmit(true)
       try{
-        await axios.post('/api/verifycode', { ...forgotPasswordFields, ref:otpRef, clientOtp:clientOtp })
+        const api = Instance()
+        const res = await api.post('/api/verifycode', { ...forgotPasswordFields, ref:otpRef, clientOtp:clientOtp })
+        setToken(res.data)
+        //console.log('done')
         setActiveView(2)
-        //console.log(result)
         setLoadSubmit(false)
-
       }
       catch(err){
         setLoadSubmit(false)
@@ -132,7 +133,6 @@ function ForgotPassword() {
           title: "Error Occured!",
           text: err.response.data,
           icon: "error",
-          
         });
       }
   
@@ -148,6 +148,7 @@ function ForgotPassword() {
             setActiveView(0)
             setClientOtp('')
             setOtpRef('')
+            setToken('')
           }} >
             <ArrowBack />
           </IconButton>
@@ -203,10 +204,9 @@ function ForgotPassword() {
       }
       else {
         setLoadReset(true)
-
-        //console.log(email, password)
         try {
-          const result = await axios.put('/api/resetpassword', { ...forgotPasswordFields, password: password.confirmPass })
+          const api = Instance()
+          const result = await api.put('/api/resetpassword', { ...forgotPasswordFields, password: password.confirmPass, validationid:token })
           swal({
             title: "Succeed",
             text: result.data,
@@ -218,12 +218,13 @@ function ForgotPassword() {
           setOtpRef('')
           setPassword('')
           setShowPassword('')
+          setToken('')
           navigate('/login')
 
 
         }
         catch (err) {
-          //console.log(err)
+          // console.log(err)
           setLoadReset(false)
           swal({
             title: "Error Occured!",
@@ -248,6 +249,7 @@ function ForgotPassword() {
               setOtpRef('')
               setPassword({ newPass: '', confirmPass: '' })
               setShowPassword({ newPass: false, confirmPass: false });
+              setToken('')
             }} >
               <ArrowBack />
             </IconButton>

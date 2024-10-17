@@ -13,9 +13,8 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import UserContext from '../Context/UserContext';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import swal from 'sweetalert';
 // import AdbIcon from '@mui/icons-material/Adb';
+import Cookies from 'js-cookie'
 
 const pages = ['Home','Client Form', 'Client Details', 'Campaign Form', 'Campaign Details', 'Report Form', 'Report Details'];
 // const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
@@ -28,27 +27,12 @@ function Navbar() {
 
     const handleNavigation =(page)=>{
       const path = '/'+page.toLowerCase().replace(' ','')
-      //console.log('clicked',path)
+      // console.log('clicked',path)
       navigate(path)
     }
     const handleLogout = ()=>{
-      axios.get('/api/logout')
-      .then(res=>{
-        //console.log(res.data)
-        swal({
-          title:res.data,
-          
-          icon:"success"
-        })
-        navigate('/login')
-      })
-      .catch(()=>{
-        swal({
-          title:'Eroor Occured!',
-          text:"Please contact admin",
-          icon:"error"
-        })
-      })
+      Cookies.remove('ssid')
+      navigate('/login')
 
     }
     const handleOpenNavMenu = (event) => {

@@ -3,9 +3,9 @@ import React, { useState } from 'react'
 import Navbar from '../NavBar/Navbar'
 import { VisibilityOff, RotateLeft, Visibility, CloudUpload, Cancel, } from '@mui/icons-material';
 import { generate } from '@wcj/generate-password';
-import axios from 'axios';
 import swal from 'sweetalert';
 import LoadingButton from '@mui/lab/LoadingButton';
+import Instance from '../../api/apiInstance';
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -47,7 +47,7 @@ function ClientForm() {
             };
 
             fileReader.onerror = (error) => {
-                //console.log('err',error)
+                // console.log('err',error)
                 reject(error);
             };
         });
@@ -55,9 +55,10 @@ function ClientForm() {
 
     const handleSubmit = (e) => {
         e.preventDefault()
-        //console.log(fields)
+        // console.log(fields)
         handleLoadButton(true)
-        axios.post('/api/addclientdetails', fields)
+        const api = Instance()
+        api.post('/api/addclientdetails', fields)
             .then(res => {
                 handleClear()
                 handleLoadButton(false)
@@ -154,15 +155,15 @@ function ClientForm() {
                                         Choose Logo
                                         <VisuallyHiddenInput type="file" accept="image/*" max={1} onInput={async (e) => {
                                             const file = e.target.files[0];
-                                            //console.log(file.name,file)
+                                            // console.log(file.name,file)
                                             try {
                                                 const url = await convertBase64(file)
                                                 file['url'] = url
-                                                //console.log(url)
+                                                // console.log(url)
                                                 setFields({ ...fields, logo: { filename: file.name, url: url } })
                                             }
                                             catch (err) {
-                                                console.log(err)
+                                                // console.log(err)
                                             }
 
 

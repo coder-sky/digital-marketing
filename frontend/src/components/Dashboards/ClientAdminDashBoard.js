@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams,} from 'react-router-dom';
 import Navbar from '../NavBar/Navbar';
-import axios from 'axios';
 import swal from 'sweetalert';
 import { Box, Grid, Paper, Typography } from '@mui/material';
 import { DataTable } from 'primereact/datatable';
@@ -12,11 +11,12 @@ import CountUp from 'react-countup';
 import Chart from "react-apexcharts";
 import { TypeAnimation } from 'react-type-animation';
 import Loader from '../Loader';
+import Instance from '../../api/apiInstance';
 
 function ClientAdminDashBoard() {
     const params =useParams()
     const [campaignStats, setCampaignStats] = useState({ campInfo: { total_campaigns: 0, live_campaigns: 0, closed_campaigns: 0 }, campaigns: [], areaGraphData: { labels: [], data: [] }, donutGraphData: { labels: [], data: [] }, tableData: { data: [], headers: [] }, selectedCamp:null })
-    //console.log( params)
+    // console.log( params)
     const [loader, setLoader] = useState(false)
     
 
@@ -24,11 +24,12 @@ function ClientAdminDashBoard() {
         const getData = async() =>{
             try {
                 setLoader(true)
-                const res = await axios.get('/api/clientdashboard-admin', { params: params })
-                //console.log(res.data)
+                const api = Instance()
+                const res = await api.get('/api/clientdashboard-admin', { params: params })
+                // console.log(res.data)
                 // setSearchFields({ campaign_name: res.data.selectedCamp })
                 // res.data.selectedCamp && setSelectedCamp(res.data.selectedCamp.campaign_name)
-                setCampaignStats(res.data)
+                setCampaignStats({...campaignStats, ...res.data,tableData:{...res.data.tableData,data:res.data.tableData.data.map(info=>({...info, date:new Date(info.date).toLocaleString('en-CA').slice(0,10)}))}})
                 setLoader(false)
             }
             catch (err) {
@@ -186,7 +187,7 @@ function ClientAdminDashBoard() {
                             <Paper sx={{ height: '100%', p: 1 }} >
                                 <Typography component={'h3'} variant='p' color={'#0086B4'}>Total Campaigns</Typography>
                                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                    {campaignStats.campInfo.total_campaigns !== 0 && <CountUp start={0} end={campaignStats.campInfo.total_campaigns} duration={5} >
+                                    {campaignStats.campInfo.total_campaigns !== 0 && <CountUp start={0} end={campaignStats.campInfo.total_campaigns} duration={5} delay={0} >
 
                                         {({ countUpRef }) => (
                                             <div>
@@ -209,7 +210,7 @@ function ClientAdminDashBoard() {
                             <Paper sx={{ height: '100%', p: 1 }} >
                                 <Typography component={'h3'} variant='p' color={'#047D4A'}>Live Campaigns</Typography>
                                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                    {campaignStats.campInfo.live_campaigns !== 0 && <CountUp start={0} end={campaignStats.campInfo.live_campaigns} duration={5} >
+                                    {campaignStats.campInfo.live_campaigns !== 0 && <CountUp start={0} end={campaignStats.campInfo.live_campaigns} duration={5} delay={0} >
 
                                         {({ countUpRef }) => (
                                             <div>
@@ -232,7 +233,7 @@ function ClientAdminDashBoard() {
                             <Paper sx={{ height: '100%', p: 1 }} >
                                 <Typography component={'h3'} variant='p' color={'#B90707'}>Closed Campaigns</Typography>
                                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                    {campaignStats.campInfo.closed_campaigns !== 0 && <CountUp start={0} end={campaignStats.campInfo.closed_campaigns} duration={5} >
+                                    {campaignStats.campInfo.closed_campaigns !== 0 && <CountUp start={0} end={campaignStats.campInfo.closed_campaigns} duration={5} delay={0} >
 
                                         {({ countUpRef }) => (
                                             <div>
