@@ -13,6 +13,6 @@ function keepAlive() {
     console.log('re-connecting')
     db.ping();     
 }
-setInterval(keepAlive, 43200000); 
+setInterval(keepAlive, 14400000); 
 
 export default db
